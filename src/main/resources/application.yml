@@ -1,0 +1,17 @@
+spring:
+    application:
+        name: RecipeRealmOreshcode
+    datasource:
+        url: jdbc:mysql://localhost:3306/RecipeRealmOreshcode?createDatabaseIfNotExist=true
+        username: root
+        password: root
+        driver-class-name: com.mysql.cj.jdbc.Driver
+    jpa:
+        hibernate:
+            ddl-auto: update
+        show-sql: true
+        format-sql: true
+
+spring-doc:
+    api-docs:
+        path=/api-docs:
