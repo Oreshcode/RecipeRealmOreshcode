@@ -62,8 +62,8 @@ public class RecipeController {
     }
 
     @GetMapping("/user/{username}")
-    public ResponseEntity<List<Recipe>> getRecipesByUser(@PathVariable String username) {
-        List<Recipe> recipes = recipeService.getRecipesByUser(username);
+    public ResponseEntity<List<Recipe>> getRecipesByUser(@PathVariable Long id) {
+        List<Recipe> recipes = recipeService.getRecipesByUser(id);
         return ResponseEntity.ok(recipes);
     }
 }

@@ -2,7 +2,7 @@ spring:
     application:
         name: RecipeRealmOreshcode
     datasource:
-        url: jdbc:mysql://localhost:3306/RecipeRealmOreshcode?createDatabaseIfNotExist=true
+        url: jdbc:mysql://localhost:3306/Recipe_Realm_Oreshcode?createDatabaseIfNotExist=true
         username: root
         password: root
         driver-class-name: com.mysql.cj.jdbc.Driver

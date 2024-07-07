@@ -60,15 +60,6 @@ public class FavoriteServiceImpl implements FavoriteService {
     }
 
     @Override
-    public Favorite getFavoritesByUsername(String username) {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new EntityNotFoundException("User not found"));
-
-        return favoriteRepository.findByUsersContaining(user)
-                .orElseThrow(() -> new EntityNotFoundException("Favorite list not found"));
-    }
-
-    @Override
     public List<Recipe> getFavoriteRecipesByUsername(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));

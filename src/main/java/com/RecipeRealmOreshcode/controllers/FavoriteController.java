@@ -1,6 +1,5 @@
 package com.RecipeRealmOreshcode.controllers;
 
-import com.RecipeRealmOreshcode.entities.Favorite;
 import com.RecipeRealmOreshcode.entities.Recipe;
 import com.RecipeRealmOreshcode.services.FavoriteService;
 import lombok.RequiredArgsConstructor;
@@ -26,12 +25,6 @@ public class FavoriteController {
     public ResponseEntity<Void> removeRecipeFromFavorites(@PathVariable Long recipeId, Principal principal) {
         favoriteService.removeRecipeFromFavorites(recipeId, principal.getName());
         return ResponseEntity.noContent().build();
-    }
-
-    @GetMapping
-    public ResponseEntity<Favorite> getFavorites(Principal principal) {
-        Favorite favorite = favoriteService.getFavoritesByUsername(principal.getName());
-        return ResponseEntity.ok(favorite);
     }
 
     @GetMapping("/recipes")

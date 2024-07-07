@@ -2,8 +2,6 @@ package com.RecipeRealmOreshcode.services.impl;
 
 import com.RecipeRealmOreshcode.dtos.UserDto;
 import com.RecipeRealmOreshcode.dtos.UserRegistrationDto;
-import com.RecipeRealmOreshcode.entities.Favorite;
-import com.RecipeRealmOreshcode.entities.Recipe;
 import com.RecipeRealmOreshcode.entities.User;
 import com.RecipeRealmOreshcode.repositories.FavoriteRepository;
 import com.RecipeRealmOreshcode.repositories.UserRepository;
@@ -15,8 +13,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -24,7 +20,6 @@ import java.util.Optional;
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final FavoriteRepository favoriteRepository;
 
     @Override
     public User registerUser(UserRegistrationDto userRegistrationDto) {

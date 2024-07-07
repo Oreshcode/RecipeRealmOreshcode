@@ -1,7 +1,6 @@
 package com.RecipeRealmOreshcode.services.impl;
 
 import com.RecipeRealmOreshcode.dtos.RecipeDto;
-import com.RecipeRealmOreshcode.entities.Favorite;
 import com.RecipeRealmOreshcode.entities.Recipe;
 import com.RecipeRealmOreshcode.entities.User;
 import com.RecipeRealmOreshcode.repositories.RecipeRepository;
@@ -13,7 +12,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -90,8 +88,8 @@ public class RecipeServiceImpl implements RecipeService {
     }
 
     @Override
-    public List<Recipe> getRecipesByUser(String username) {
-        User user = userRepository.findByUsername(username)
+    public List<Recipe> getRecipesByUser(Long id) {
+        User user = userRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
         return recipeRepository.findByAuthorId(user.getId());
     }

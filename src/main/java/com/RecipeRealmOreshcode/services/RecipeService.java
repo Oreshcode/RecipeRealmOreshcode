@@ -13,5 +13,5 @@ public interface RecipeService {
     List<Recipe> searchRecipes(String keyword, String category);
     void likeRecipe(Long id);
     void dislikeRecipe(Long id);
-    List<Recipe> getRecipesByUser(String username);
+    List<Recipe> getRecipesByUser(Long id);
 }

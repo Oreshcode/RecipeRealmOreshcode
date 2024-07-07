@@ -1,10 +1,14 @@
 package com.RecipeRealmOreshcode.services.impl;
 
+import com.RecipeRealmOreshcode.dtos.UserDto;
 import com.RecipeRealmOreshcode.dtos.UserRegistrationDto;
 import com.RecipeRealmOreshcode.entities.User;
 import com.RecipeRealmOreshcode.repositories.UserRepository;
-import com.RecipeRealmOreshcode.services.UserService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Optional;
@@ -15,42 +19,101 @@ import static org.mockito.Mockito.*;
 
 class UserServiceImplTest {
 
-    private final UserRepository userRepository = mock(UserRepository.class);
-    private final PasswordEncoder passwordEncoder = mock(PasswordEncoder.class);
-    private final UserService userService = new UserServiceImpl(userRepository, passwordEncoder);
+    @InjectMocks
+    private UserServiceImpl userService;
+
+    @Mock
+    private UserRepository userRepository;
+
+    @Mock
+    private PasswordEncoder passwordEncoder;
+
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+    }
 
     @Test
-    public void testRegisterUser() {
-        UserRegistrationDto dto = new UserRegistrationDto();
-        dto.setUsername("testuser");
-        dto.setPassword("password");
-        dto.setEmail("test@example.com");
+    void testRegisterUser() {
+        UserRegistrationDto userRegistrationDto = new UserRegistrationDto();
+        userRegistrationDto.setUsername("Testerino");
+        userRegistrationDto.setPassword("TesterinoPass");
+        userRegistrationDto.setEmail("Tester@test.com");
 
-        when(userRepository.findByUsername(any(String.class))).thenReturn(Optional.empty());
-        when(userRepository.findByEmail(any(String.class))).thenReturn(Optional.empty());
-        when(passwordEncoder.encode(any(String.class))).thenReturn("encodedpassword");
-        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        User user = new User();
+        user.setUsername("Testerino");
+        user.setEmail("Tester@test.com");
 
-        User registeredUser = userService.registerUser(dto);
+        when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
+        when(userRepository.save(any(User.class))).thenReturn(user);
 
-        assertEquals("testuser", registeredUser.getUsername());
-        assertEquals("encodedpassword", registeredUser.getPassword());
-        assertEquals("test@example.com", registeredUser.getEmail());
+        User registeredUser = userService.registerUser(userRegistrationDto);
+
+        assertNotNull(registeredUser);
+        assertEquals("Testerino", registeredUser.getUsername());
+        assertEquals("Tester@test.com", registeredUser.getEmail());
+
         verify(userRepository, times(1)).save(any(User.class));
     }
 
     @Test
-    public void testGetUserById() {
+    void testUpdateUser() {
+        User existingUser = new User();
+        existingUser.setUsername("existingUser");
+        existingUser.setPassword("existingPassword");
+        existingUser.setEmail("existingUser@example.com");
+
+        when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(existingUser));
+        when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
+        when(userRepository.save(any(User.class))).thenReturn(existingUser);
+
+        UserDto userDto = new UserDto();
+        userDto.setUsername("updatedUser");
+        userDto.setPassword("updatedPassword");
+        userDto.setEmail("updatedUser@example.com");
+
+        User updatedUser = userService.updateUser(userDto, "existingUser");
+
+        assertNotNull(updatedUser);
+        assertEquals("updatedUser", updatedUser.getUsername());
+        assertEquals("updatedUser@example.com", updatedUser.getEmail());
+
+        verify(userRepository, times(1)).findByUsername(anyString());
+        verify(userRepository, times(1)).save(any(User.class));
+    }
+
+    @Test
+    void testDeleteUser() {
         User user = new User();
         user.setId(1L);
-        user.setUsername("testuser");
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
 
-        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        userService.deleteUser(1L);
+
+        verify(userRepository, times(1)).deleteById(1L);
+    }
+
+    @Test
+    void testGetUserByUsername() {
+        User user = new User();
+        user.setUsername("TestByUsername");
+        when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(user));
+
+        Optional<User> foundUser = userService.getUserByUsername("TestByUsername");
+
+        assertNotNull(foundUser);
+        assertEquals("TestByUsername", foundUser.get().getUsername());
+    }
+
+    @Test
+    void testGetUserById() {
+        User user = new User();
+        user.setId(1L);
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
 
         Optional<User> foundUser = userService.getUserById(1L);
 
-        assertTrue(foundUser.isPresent());
-        assertEquals("testuser", foundUser.get().getUsername());
-        verify(userRepository, times(1)).findById(1L);
+        assertNotNull(foundUser);
+        assertEquals(1L, foundUser.get().getId());
     }
 }
