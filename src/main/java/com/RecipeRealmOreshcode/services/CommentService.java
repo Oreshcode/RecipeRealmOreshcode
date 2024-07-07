@@ -11,5 +11,4 @@ public interface CommentService {
     void likeComment(Long id);
     void dislikeComment(Long id);
     List<Comment> getCommentsByRecipeId(Long recipeId);
-
 }

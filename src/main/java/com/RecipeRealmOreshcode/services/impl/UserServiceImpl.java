@@ -1,12 +1,11 @@
 package com.RecipeRealmOreshcode.services.impl;
 
+import com.RecipeRealmOreshcode.advice.exception.RecordNotFoundException;
 import com.RecipeRealmOreshcode.dtos.UserDto;
 import com.RecipeRealmOreshcode.dtos.UserRegistrationDto;
 import com.RecipeRealmOreshcode.entities.User;
-import com.RecipeRealmOreshcode.repositories.FavoriteRepository;
 import com.RecipeRealmOreshcode.repositories.UserRepository;
 import com.RecipeRealmOreshcode.services.UserService;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.ConstraintViolationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -59,7 +58,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public User updateUser(UserDto userDto, String username) {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+                .orElseThrow(() -> new RecordNotFoundException("User not found"));
 
         user.setUsername(userDto.getUsername());
         if (userDto.getPassword() != null && !userDto.getPassword().isEmpty()) {

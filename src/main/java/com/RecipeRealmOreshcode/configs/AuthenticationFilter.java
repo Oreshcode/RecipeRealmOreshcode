@@ -34,7 +34,6 @@ public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) {
         response.setStatus(HttpServletResponse.SC_OK);
-        // Add JWT token to response if needed
     }
 
     @Override

@@ -18,7 +18,7 @@ import java.util.List;
 public class RecipeController {
     private final RecipeService recipeService;
 
-    @PostMapping
+    @PostMapping("/create")
     public ResponseEntity<Recipe> createRecipe(@RequestBody @Valid RecipeDto recipeDto, Principal principal) {
         Recipe createdRecipe = recipeService.createRecipe(recipeDto, principal.getName());
         return ResponseEntity.created(URI.create("/api/recipes/" + createdRecipe.getId())).body(createdRecipe);
@@ -42,7 +42,7 @@ public class RecipeController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping
+    @GetMapping("/recipes")
     public ResponseEntity<List<Recipe>> searchRecipes(@RequestParam(required = false) String keyword,
                                                       @RequestParam(required = false) String category) {
         List<Recipe> recipes = recipeService.searchRecipes(keyword, category);

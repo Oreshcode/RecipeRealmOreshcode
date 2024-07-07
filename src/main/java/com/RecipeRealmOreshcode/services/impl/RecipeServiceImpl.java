@@ -1,12 +1,12 @@
 package com.RecipeRealmOreshcode.services.impl;
 
+import com.RecipeRealmOreshcode.advice.exception.RecordNotFoundException;
 import com.RecipeRealmOreshcode.dtos.RecipeDto;
 import com.RecipeRealmOreshcode.entities.Recipe;
 import com.RecipeRealmOreshcode.entities.User;
 import com.RecipeRealmOreshcode.repositories.RecipeRepository;
 import com.RecipeRealmOreshcode.repositories.UserRepository;
 import com.RecipeRealmOreshcode.services.RecipeService;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -22,7 +22,7 @@ public class RecipeServiceImpl implements RecipeService {
     @Override
     public Recipe createRecipe(RecipeDto recipeDto, String authorUsername) {
         User author = userRepository.findByUsername(authorUsername)
-                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+                .orElseThrow(() -> new RecordNotFoundException("User not found"));
 
         Recipe recipe = new Recipe();
         recipe.setTitle(recipeDto.getTitle());
@@ -39,7 +39,7 @@ public class RecipeServiceImpl implements RecipeService {
     @Override
     public Recipe updateRecipe(Long id, RecipeDto recipeDto) {
         Recipe recipe = recipeRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Recipe not found"));
+                .orElseThrow(() -> new RecordNotFoundException("Recipe not found"));
 
         recipe.setTitle(recipeDto.getTitle());
         recipe.setDescription(recipeDto.getDescription());
@@ -58,7 +58,7 @@ public class RecipeServiceImpl implements RecipeService {
     @Override
     public Recipe getRecipeById(Long id) {
         return recipeRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Recipe not found"));
+                .orElseThrow(() -> new RecordNotFoundException("Recipe not found"));
     }
 
     @Override
@@ -72,7 +72,7 @@ public class RecipeServiceImpl implements RecipeService {
     @Override
     public void likeRecipe(Long id) {
         Recipe recipe = recipeRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Recipe not found"));
+                .orElseThrow(() -> new RecordNotFoundException("Recipe not found"));
 
         recipe.setLikes(recipe.getLikes() + 1);
         recipeRepository.save(recipe);
@@ -81,7 +81,7 @@ public class RecipeServiceImpl implements RecipeService {
     @Override
     public void dislikeRecipe(Long id) {
         Recipe recipe = recipeRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Recipe not found"));
+                .orElseThrow(() -> new RecordNotFoundException("Recipe not found"));
 
         recipe.setDislikes(recipe.getDislikes() + 1);
         recipeRepository.save(recipe);
@@ -90,7 +90,7 @@ public class RecipeServiceImpl implements RecipeService {
     @Override
     public List<Recipe> getRecipesByUser(Long id) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+                .orElseThrow(() -> new RecordNotFoundException("User not found"));
         return recipeRepository.findByAuthorId(user.getId());
     }
 }

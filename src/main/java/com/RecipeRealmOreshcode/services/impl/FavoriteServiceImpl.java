@@ -1,5 +1,6 @@
 package com.RecipeRealmOreshcode.services.impl;
 
+import com.RecipeRealmOreshcode.advice.exception.RecordNotFoundException;
 import com.RecipeRealmOreshcode.entities.Favorite;
 import com.RecipeRealmOreshcode.entities.Recipe;
 import com.RecipeRealmOreshcode.entities.User;
@@ -7,7 +8,6 @@ import com.RecipeRealmOreshcode.repositories.FavoriteRepository;
 import com.RecipeRealmOreshcode.repositories.RecipeRepository;
 import com.RecipeRealmOreshcode.repositories.UserRepository;
 import com.RecipeRealmOreshcode.services.FavoriteService;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -25,9 +25,9 @@ public class FavoriteServiceImpl implements FavoriteService {
     @Override
     public void addRecipeToFavorites(Long recipeId, String username) {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+                .orElseThrow(() -> new RecordNotFoundException("User not found"));
         Recipe recipe = recipeRepository.findById(recipeId)
-                .orElseThrow(() -> new EntityNotFoundException("Recipe not found"));
+                .orElseThrow(() -> new RecordNotFoundException("Recipe not found"));
 
         Optional<Favorite> favoriteOptional = favoriteRepository.findByUsersContaining(user);
         Favorite favorite;
@@ -48,12 +48,12 @@ public class FavoriteServiceImpl implements FavoriteService {
     @Override
     public void removeRecipeFromFavorites(Long recipeId, String username) {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+                .orElseThrow(() -> new RecordNotFoundException("User not found"));
         Recipe recipe = recipeRepository.findById(recipeId)
-                .orElseThrow(() -> new EntityNotFoundException("Recipe not found"));
+                .orElseThrow(() -> new RecordNotFoundException("Recipe not found"));
 
         Favorite favorite = favoriteRepository.findByUsersContaining(user)
-                .orElseThrow(() -> new EntityNotFoundException("Favorite list not found"));
+                .orElseThrow(() -> new RecordNotFoundException("Favorite list not found"));
 
         favorite.getRecipes().remove(recipe);
         favoriteRepository.save(favorite);
@@ -62,7 +62,7 @@ public class FavoriteServiceImpl implements FavoriteService {
     @Override
     public List<Recipe> getFavoriteRecipesByUsername(String username) {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+                .orElseThrow(() -> new RecordNotFoundException("User not found"));
         Optional<Favorite> favoriteOptional = favoriteRepository.findByUsersContaining(user);
         return favoriteOptional.map(favorite -> new ArrayList<>(favorite.getRecipes())).orElseGet(ArrayList::new);
     }
