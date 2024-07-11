@@ -12,7 +12,7 @@
 - [Requirements](#requirements)
 - [Quick Start](#quick-start)
 - [Testing](#testing)
-- [API](#requirements)
+- [API](#API)
 - [Acknowledgements](#acknowledgements)
 
 
@@ -23,7 +23,6 @@
 Welcome to Recipe Realm Oreshcode. The goal of this application is to allow people to create accounts and then add their recipes, as well as sharing them with others.
 
 ## Features
-TODO: Description of features
 * User Registration
 * User Login
 * User Authentication
