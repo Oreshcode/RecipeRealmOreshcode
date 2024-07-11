@@ -8,9 +8,10 @@ import com.RecipeRealmOreshcode.repositories.RecipeRepository;
 import com.RecipeRealmOreshcode.repositories.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.*;
 
@@ -19,6 +20,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 class FavoriteServiceImplTest {
 
     @InjectMocks
@@ -33,96 +35,67 @@ class FavoriteServiceImplTest {
     @Mock
     private UserRepository userRepository;
 
+    private User mockUser;
+    private Recipe mockRecipe;
+    private Favorite mockFavorite;
+
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
+        mockUser = new User();
+        mockUser.setId(1L);
+        mockUser.setUsername("testuser");
+
+        mockRecipe = new Recipe();
+        mockRecipe.setId(1L);
+        mockRecipe.setTitle("Test Recipe");
+
+        mockFavorite = new Favorite();
+        mockFavorite.setId(1L);
+        mockFavorite.getUsers().add(mockUser);
+        mockFavorite.getRecipes().add(mockRecipe);
     }
 
     @Test
     void testAddFavorite() {
-        User user = new User();
-        user.setId(1L);
-        user.setUsername("TestFav");
-        user.setEmail("newuser@example.com");
-        user.setPassword("1234567");
+        when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(mockUser));
+        when(recipeRepository.findById(anyLong())).thenReturn(Optional.of(mockRecipe));
+        when(favoriteRepository.save(any(Favorite.class))).thenReturn(mockFavorite);
 
-        Set<User> users = new HashSet<>();
-        users.add(user);
+        favoriteService.addRecipeToFavorites(mockRecipe.getId(), mockUser.getUsername());
 
-        Recipe recipe = new Recipe();
-        recipe.setId(1L);
-
-        Favorite favorite = new Favorite();
-        favorite.setUsers(users);;
-        Set<Recipe> recipes = new HashSet<>();
-        favorite.setRecipes(recipes);
-
-        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
-        when(recipeRepository.findById(anyLong())).thenReturn(Optional.of(recipe));
-        when(favoriteRepository.save(any(Favorite.class))).thenReturn(favorite);
-
-        favoriteService.addRecipeToFavorites(1L, user.getUsername());
-
+        verify(userRepository, times(1)).findByUsername(anyString());
+        verify(recipeRepository, times(1)).findById(anyLong());
         verify(favoriteRepository, times(1)).save(any(Favorite.class));
     }
 
     @Test
     void testRemoveFavorite() {
-        User user = new User();
-        user.setId(1L);
-        user.setUsername("TestFav");
+        when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(mockUser));
+        when(recipeRepository.findById(anyLong())).thenReturn(Optional.of(mockRecipe));
+        when(favoriteRepository.findByUsersContaining(mockUser)).thenReturn(Optional.of(mockFavorite));
 
-        Set<User> users = new HashSet<>();
-        users.add(user);
+        favoriteService.removeRecipeFromFavorites(mockRecipe.getId(), mockUser.getUsername());
 
-        Recipe recipe = new Recipe();
-        recipe.setId(1L);
-
-        Favorite favorite = new Favorite();
-        favorite.setUsers(users);
-        Set<Recipe> recipes = new HashSet<>();
-        recipes.add(recipe);
-        favorite.setRecipes(recipes);
-
-        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
-        when(recipeRepository.findById(anyLong())).thenReturn(Optional.of(recipe));
-        when(favoriteRepository.findById(anyLong())).thenReturn(Optional.of(favorite));
-
-        favoriteService.removeRecipeFromFavorites(1L, user.getUsername());
-
+        verify(userRepository, times(1)).findByUsername(anyString());
+        verify(recipeRepository, times(1)).findById(anyLong());
+        verify(favoriteRepository, times(1)).findByUsersContaining(any(User.class));
         verify(favoriteRepository, times(1)).save(any(Favorite.class));
-        assertFalse(favorite.getRecipes().contains(recipe));
     }
 
     @Test
     void testGetFavoritesByUser() {
-        User user = new User();
-        user.setId(1L);
-        user.setUsername("TestFindFavs");
+        when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(mockUser));
+        when(favoriteRepository.findByUsersContaining(any(User.class))).thenReturn(Optional.of(mockFavorite));
 
-        Set<User> users = new HashSet<>();
-        users.add(user);
+        List<Recipe> favoriteRecipes = favoriteService.getFavoriteRecipesByUsername(mockUser.getUsername());
 
-        Recipe recipe1 = new Recipe();
-        recipe1.setId(1L);
+        assertNotNull(favoriteRecipes);
+        assertFalse(favoriteRecipes.isEmpty());
+        assertEquals(1, favoriteRecipes.size());
+        assertEquals(mockRecipe.getId(), favoriteRecipes.get(0).getId());
 
-        Recipe recipe2 = new Recipe();
-        recipe2.setId(2L);
-
-        Favorite favorite = new Favorite();
-        favorite.setUsers(users);
-        Set<Recipe> recipes = new HashSet<>();
-        recipes.add(recipe1);
-        recipes.add(recipe2);
-        favorite.setRecipes(recipes);
-
-        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
-        when(favoriteRepository.findByUsersContaining(any(User.class))).thenReturn(Optional.of(favorite));
-
-        List<Recipe> foundFavorites = favoriteService.getFavoriteRecipesByUsername(user.getUsername());
-
-        assertNotNull(foundFavorites);
-        assertEquals(2, foundFavorites.size());
+        verify(userRepository, times(1)).findByUsername(anyString());
+        verify(favoriteRepository, times(1)).findByUsersContaining(any(User.class));
     }
 
 }

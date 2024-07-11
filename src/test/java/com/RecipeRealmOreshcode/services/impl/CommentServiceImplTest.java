@@ -9,9 +9,11 @@ import com.RecipeRealmOreshcode.repositories.RecipeRepository;
 import com.RecipeRealmOreshcode.repositories.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -24,6 +26,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 class CommentServiceImplTest {
     @InjectMocks
     private CommentServiceImpl commentService;
@@ -37,9 +40,25 @@ class CommentServiceImplTest {
     @Mock
     private UserRepository userRepository;
 
+    private Comment mockComment;
+    private Recipe mockRecipe;
+    private User mockUser;
+
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
+        mockUser = new User();
+        mockUser.setId(1L);
+        mockUser.setUsername("testuser");
+
+        mockRecipe = new Recipe();
+        mockRecipe.setId(1L);
+
+        mockComment = new Comment();
+        mockComment.setId(1L);
+        mockComment.setText("Test Comment");
+        mockComment.setAuthor(mockUser);
+        mockComment.setRecipe(mockRecipe);
+        mockComment.setCreatedAt(Instant.now());
     }
 
     @Test
@@ -52,7 +71,7 @@ class CommentServiceImplTest {
         recipe.setId(1L);
         recipe.setTitle("Test Recipe Title");
 
-        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+        when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(user));
         when(recipeRepository.findById(anyLong())).thenReturn(Optional.of(recipe));
 
         CommentDto commentDto = new CommentDto();
@@ -79,13 +98,15 @@ class CommentServiceImplTest {
 
     @Test
     void testDeleteComment() {
-        Comment comment = new Comment();
-        comment.setId(1L);
-        when(commentRepository.findById(anyLong())).thenReturn(Optional.of(comment));
+        Long commentId = 1L;
 
-        commentService.deleteComment(1L);
+        when(commentRepository.findById(commentId)).thenReturn(Optional.of(mockComment));
+        doNothing().when(commentRepository).deleteById(commentId);
 
-        verify(commentRepository, times(1)).deleteById(1L);
+        commentService.deleteComment(commentId);
+
+        verify(commentRepository, times(1)).findById(commentId);
+        verify(commentRepository, times(1)).deleteById(commentId);
     }
 
     @Test

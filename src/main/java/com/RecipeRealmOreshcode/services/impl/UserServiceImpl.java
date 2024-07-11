@@ -52,6 +52,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void deleteUser(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RecordNotFoundException("User not found"));
         userRepository.deleteById(id);
     }
 
@@ -68,5 +70,15 @@ public class UserServiceImpl implements UserService {
         user.setProfilePicture(userDto.getProfilePicture());
 
         return userRepository.save(user);
+    }
+
+    @Override
+    public User login(String username, String password) {
+        User user = userRepository.findByUsername(username).orElseThrow(() -> new RecordNotFoundException("User not found"));
+        if (passwordEncoder.matches(password, user.getPassword())) {
+            return user;
+        } else {
+            throw new IllegalArgumentException("Invalid username or password");
+        }
     }
 }

@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -52,6 +53,8 @@ public class RecipeServiceImpl implements RecipeService {
 
     @Override
     public void deleteRecipe(Long id) {
+        Recipe recipe = recipeRepository.findById(id)
+                .orElseThrow(() -> new RecordNotFoundException("Recipe not found"));
         recipeRepository.deleteById(id);
     }
 
@@ -63,10 +66,9 @@ public class RecipeServiceImpl implements RecipeService {
 
     @Override
     public List<Recipe> searchRecipes(String keyword, String category) {
-        if (category != null) {
-            return recipeRepository.findByCategory(category);
-        }
-        return recipeRepository.findByTitleContaining(keyword);
+        return recipeRepository.findAll().stream()
+                .filter(recipe -> recipe.getDescription().contains(keyword) && recipe.getCategory().equals(category))
+                .collect(Collectors.toList());
     }
 
     @Override

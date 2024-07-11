@@ -13,7 +13,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -29,17 +28,12 @@ public class FavoriteServiceImpl implements FavoriteService {
         Recipe recipe = recipeRepository.findById(recipeId)
                 .orElseThrow(() -> new RecordNotFoundException("Recipe not found"));
 
-        Optional<Favorite> favoriteOptional = favoriteRepository.findByUsersContaining(user);
-        Favorite favorite;
-        if (favoriteOptional.isPresent()) {
-            favorite = favoriteOptional.get();
-        } else {
-            favorite = new Favorite();
-            favorite.getUsers().add(user);
-            favoriteRepository.save(favorite);
-            user.getFavorites().add(favorite);
-            userRepository.save(user);
-        }
+        Favorite favorite = favoriteRepository.findByUsersContaining(user)
+                .orElseGet(() -> {
+                    Favorite newFavorite = new Favorite();
+                    newFavorite.getUsers().add(user);
+                    return newFavorite;
+                });
 
         favorite.getRecipes().add(recipe);
         favoriteRepository.save(favorite);
@@ -63,7 +57,10 @@ public class FavoriteServiceImpl implements FavoriteService {
     public List<Recipe> getFavoriteRecipesByUsername(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RecordNotFoundException("User not found"));
-        Optional<Favorite> favoriteOptional = favoriteRepository.findByUsersContaining(user);
-        return favoriteOptional.map(favorite -> new ArrayList<>(favorite.getRecipes())).orElseGet(ArrayList::new);
+
+        Favorite favorite = favoriteRepository.findByUsersContaining(user)
+                .orElseThrow(() -> new RecordNotFoundException("Favorite list not found"));
+
+        return new ArrayList<>(favorite.getRecipes());
     }
 }

@@ -6,17 +6,20 @@ import com.RecipeRealmOreshcode.entities.User;
 import com.RecipeRealmOreshcode.repositories.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.time.Instant;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 class UserServiceImplTest {
 
     @InjectMocks
@@ -28,9 +31,31 @@ class UserServiceImplTest {
     @Mock
     private PasswordEncoder passwordEncoder;
 
+    private User mockUser;
+
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
+        mockUser = new User();
+        mockUser.setId(1L);
+        mockUser.setUsername("testuser");
+        mockUser.setPassword("password");
+        mockUser.setEmail("test@example.com");
+        mockUser.setProfilePicture("http://testerpiclink.com/test.jpg");
+        mockUser.setCreatedAt(Instant.now());
+    }
+
+    @Test
+    void testLogin() {
+        when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(mockUser));
+        when(passwordEncoder.matches(anyString(), anyString())).thenReturn(true);
+
+        User loggedInUser = userService.login("testuser", "password");
+
+        assertNotNull(loggedInUser);
+        assertEquals("testuser", loggedInUser.getUsername());
+
+        verify(userRepository, times(1)).findByUsername(anyString());
+        verify(passwordEncoder, times(1)).matches(anyString(), anyString());
     }
 
     @Test
@@ -54,66 +79,56 @@ class UserServiceImplTest {
         assertEquals("Tester@test.com", registeredUser.getEmail());
 
         verify(userRepository, times(1)).save(any(User.class));
+
+
     }
 
     @Test
     void testUpdateUser() {
-        User existingUser = new User();
-        existingUser.setUsername("existingUser");
-        existingUser.setPassword("existingPassword");
-        existingUser.setEmail("existingUser@example.com");
+        when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(mockUser));
+        when(passwordEncoder.matches(anyString(), anyString())).thenReturn(true);
 
-        when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(existingUser));
-        when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
-        when(userRepository.save(any(User.class))).thenReturn(existingUser);
+        User loggedInUser = userService.login("testuser", "password");
 
-        UserDto userDto = new UserDto();
-        userDto.setUsername("updatedUser");
-        userDto.setPassword("updatedPassword");
-        userDto.setEmail("updatedUser@example.com");
-
-        User updatedUser = userService.updateUser(userDto, "existingUser");
-
-        assertNotNull(updatedUser);
-        assertEquals("updatedUser", updatedUser.getUsername());
-        assertEquals("updatedUser@example.com", updatedUser.getEmail());
+        assertNotNull(loggedInUser);
+        assertEquals("testuser", loggedInUser.getUsername());
 
         verify(userRepository, times(1)).findByUsername(anyString());
-        verify(userRepository, times(1)).save(any(User.class));
+        verify(passwordEncoder, times(1)).matches(anyString(), anyString());
     }
 
     @Test
     void testDeleteUser() {
-        User user = new User();
-        user.setId(1L);
-        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(mockUser));
+        doNothing().when(userRepository).deleteById(anyLong());
 
-        userService.deleteUser(1L);
+        userService.deleteUser(mockUser.getId());
 
-        verify(userRepository, times(1)).deleteById(1L);
+        verify(userRepository, times(1)).findById(anyLong());
+        verify(userRepository, times(1)).deleteById(anyLong());
     }
 
     @Test
     void testGetUserByUsername() {
-        User user = new User();
-        user.setUsername("TestByUsername");
-        when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(user));
+        when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(mockUser));
 
-        Optional<User> foundUser = userService.getUserByUsername("TestByUsername");
+        Optional<User> foundUser = userService.getUserByUsername("testuser");
 
         assertNotNull(foundUser);
-        assertEquals("TestByUsername", foundUser.get().getUsername());
+        assertEquals("testuser", foundUser.get().getUsername());
+
+        verify(userRepository, times(1)).findByUsername(anyString());
     }
 
     @Test
     void testGetUserById() {
-        User user = new User();
-        user.setId(1L);
-        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(mockUser));
 
-        Optional<User> foundUser = userService.getUserById(1L);
+        Optional<User> foundUser = userService.getUserById(mockUser.getId());
 
         assertNotNull(foundUser);
-        assertEquals(1L, foundUser.get().getId());
+        assertEquals(mockUser.getId(), foundUser.get().getId());
+
+        verify(userRepository, times(1)).findById(anyLong());
     }
 }

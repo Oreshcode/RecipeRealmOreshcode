@@ -38,7 +38,12 @@ public class SecurityConfig{
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**", "/api/users/login").permitAll()
+                        .requestMatchers("/api/auth/**",
+                                "/api/users/login", "/api/users/register", "/api/users/update", "/api/users/{id}", "/api/users/me",
+                                "/api/recipes/create", "/api/recipes/recipes", "/api/recipes/{id}", "/api/recipes/{id}/like", "/api/recipes/{id}/dislike",
+                                "/api/recipes/user/{id}", "/api/favorites/add/{recipeId}", "/api/favorites/remove/{recipeId}", "/api/favorites/recipes",
+                                "/api/comments/recipe/{recipeId}", "/api/comments/{id}", "/api/comments/{id}/like", "/api/comments/{id}/dislike", "/api/comments/recipe/{recipeId}"
+                        ).permitAll()
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form

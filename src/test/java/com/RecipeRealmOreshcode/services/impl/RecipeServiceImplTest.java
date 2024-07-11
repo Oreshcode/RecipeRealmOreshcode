@@ -7,9 +7,10 @@ import com.RecipeRealmOreshcode.repositories.RecipeRepository;
 import com.RecipeRealmOreshcode.repositories.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -19,6 +20,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 class RecipeServiceImplTest {
     @InjectMocks
     private RecipeServiceImpl recipeService;
@@ -29,44 +31,48 @@ class RecipeServiceImplTest {
     @Mock
     private UserRepository userRepository;
 
+    private User mockUser;
+    private Recipe mockRecipe;
+    private RecipeDto mockRecipeDto;
+
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
+        mockUser = new User();
+        mockUser.setId(1L);
+        mockUser.setUsername("testuser");
+        mockUser.setEmail("testemail@test.com");
+        mockUser.setPassword("testpassword");
+
+        mockRecipeDto = new RecipeDto();
+        mockRecipeDto.setTitle("Test Recipe");
+        mockRecipeDto.setDescription("Test Description");
+        mockRecipeDto.setIngredients("Test Ingredients");
+        mockRecipeDto.setInstructions("Test Instructions");
+        mockRecipeDto.setCategory("Test Category");
+
+        mockRecipe = new Recipe();
+        mockRecipe.setId(1L);
+        mockRecipe.setTitle("Test Recipe");
+        mockRecipe.setDescription("Test Description");
+        mockRecipe.setIngredients("Test Ingredients");
+        mockRecipe.setInstructions("Test Instructions");
+        mockRecipe.setCategory("Test Category");
+        mockRecipe.setCreatedAt(Instant.now());
+        mockRecipe.setAuthor(mockUser);
     }
 
     @Test
     void testCreateRecipe() {
-        User user = new User();
-        user.setId(1L);
-        user.setUsername("JohnTesty");
+        when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(mockUser));
+        when(recipeRepository.save(any(Recipe.class))).thenReturn(mockRecipe);
 
-        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
-
-        RecipeDto recipeDto = new RecipeDto();
-        recipeDto.setTitle("Test Recipe");
-        recipeDto.setDescription("Test Description");
-        recipeDto.setIngredients("Test Ingredients");
-        recipeDto.setInstructions("Test Instructions");
-        recipeDto.setCategory("Test Category");
-
-        Recipe recipe = new Recipe();
-        recipe.setId(1L);
-        recipe.setTitle("Test Recipe");
-        recipe.setDescription("Test Description");
-        recipe.setIngredients("Test Ingredients");
-        recipe.setInstructions("Test Instructions");
-        recipe.setCategory("Test Category");
-        recipe.setAuthor(user);
-        recipe.setCreatedAt(Instant.now());
-
-        when(recipeRepository.save(any(Recipe.class))).thenReturn(recipe);
-
-        Recipe createdRecipe = recipeService.createRecipe(recipeDto, user.getUsername());
+        Recipe createdRecipe = recipeService.createRecipe(mockRecipeDto, mockUser.getUsername());
 
         assertNotNull(createdRecipe);
         assertEquals("Test Recipe", createdRecipe.getTitle());
-        assertEquals("Test Description", createdRecipe.getDescription());
+        assertEquals("testuser", createdRecipe.getAuthor().getUsername());
 
+        verify(userRepository, times(1)).findByUsername(anyString());
         verify(recipeRepository, times(1)).save(any(Recipe.class));
     }
 
@@ -96,6 +102,7 @@ class RecipeServiceImplTest {
         recipeDto.setInstructions("Updated Instructions");
         recipeDto.setCategory("Updated Category");
 
+
         Recipe updatedRecipe = recipeService.updateRecipe(1L, recipeDto);
 
         assertNotNull(updatedRecipe);
@@ -108,13 +115,15 @@ class RecipeServiceImplTest {
 
     @Test
     void testDeleteRecipe() {
-        Recipe recipe = new Recipe();
-        recipe.setId(1L);
-        when(recipeRepository.findById(anyLong())).thenReturn(Optional.of(recipe));
+        Long recipeId = 1L;
 
-        recipeService.deleteRecipe(1L);
+        when(recipeRepository.findById(recipeId)).thenReturn(Optional.of(mockRecipe));
+        doNothing().when(recipeRepository).deleteById(recipeId);
 
-        verify(recipeRepository, times(1)).deleteById(1L);
+        recipeService.deleteRecipe(recipeId);
+
+        verify(recipeRepository, times(1)).findById(recipeId);
+        verify(recipeRepository, times(1)).deleteById(recipeId);
     }
 
     @Test
@@ -133,13 +142,15 @@ class RecipeServiceImplTest {
     void testSearchRecipes() {
         Recipe recipe1 = new Recipe();
         recipe1.setId(1L);
-        recipe1.setTitle("Recipe 1");
+        recipe1.setTitle("Recipe");
         recipe1.setCategory("Lunch");
+        recipe1.setDescription("Eggs");
 
         Recipe recipe2 = new Recipe();
         recipe2.setId(2L);
-        recipe2.setTitle("Recipe 2");
+        recipe2.setTitle("Recipe");
         recipe2.setCategory("Dinner");
+        recipe2.setDescription("Steak");
 
         List<Recipe> recipes = new ArrayList<>();
         recipes.add(recipe1);
@@ -147,7 +158,7 @@ class RecipeServiceImplTest {
 
         when(recipeRepository.findAll()).thenReturn(recipes);
 
-        List<Recipe> foundRecipes = recipeService.searchRecipes("Recipe", "Dinner");
+        List<Recipe> foundRecipes = recipeService.searchRecipes("Steak", "Dinner");
 
         assertNotNull(foundRecipes);
         assertEquals(1, foundRecipes.size());
@@ -183,26 +194,18 @@ class RecipeServiceImplTest {
 
     @Test
     void testGetRecipesByUser() {
-        User user = new User();
-        user.setId(1L);
+        Long userId = 1L;
 
-        Recipe recipe1 = new Recipe();
-        recipe1.setId(1L);
-        recipe1.setAuthor(user);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
+        when(recipeRepository.findByAuthorId(userId)).thenReturn(List.of(mockRecipe));
 
-        Recipe recipe2 = new Recipe();
-        recipe2.setId(2L);
-        recipe2.setAuthor(user);
+        List<Recipe> recipes = recipeService.getRecipesByUser(userId);
 
-        List<Recipe> recipes = new ArrayList<>();
-        recipes.add(recipe1);
-        recipes.add(recipe2);
+        assertNotNull(recipes);
+        assertFalse(recipes.isEmpty());
+        assertEquals("testuser", recipes.get(0).getAuthor().getUsername());
 
-        when(recipeRepository.findByAuthorId(any())).thenReturn(recipes);
-
-        List<Recipe> foundRecipes = recipeService.getRecipesByUser(1L);
-
-        assertNotNull(foundRecipes);
-        assertEquals(2, foundRecipes.size());
+        verify(userRepository, times(1)).findById(userId);
+        verify(recipeRepository, times(1)).findByAuthorId(userId);
     }
 }
