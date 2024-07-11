@@ -1,7 +1,7 @@
 <h1 align="center"> Recipe Realm Oreshcode </h1> <br>
 
 <p align="center">
-  A small application that allows users to Register and create cooking recipes and share them with others.
+  A small application that allows users to Register and create cooking recipes and share them with others. Developed by Iliyan Oreshkov (Oreshcode)
 </p>
 
 
